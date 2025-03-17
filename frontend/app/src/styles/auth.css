@@ -1,0 +1,105 @@
+/* General container styling */
+.auth-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+    background: linear-gradient(135deg, #007bff, #6610f2);
+  }
+  
+  /* Form container with a modern card look */
+  .auth-form-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+    padding: 40px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+  }
+  
+  /* Title Styling */
+  .auth-title {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 20px;
+  }
+  
+  /* Form Group */
+  .form-group {
+    margin-bottom: 20px;
+    text-align: left;
+  }
+  
+  /* Label */
+  .form-label {
+    display: block;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 8px;
+  }
+  
+  /* Input Field */
+  .form-input {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  /* Input Focus Effect */
+  .form-input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.4);
+  }
+  
+  /* Error Input */
+  .form-input.error {
+    border-color: #dc3545;
+  }
+  
+  /* Submit Button */
+  .submit-button {
+    background: linear-gradient(135deg, #007bff, #6610f2);
+    color: white;
+    border: none;
+    padding: 14px;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 8px;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  /* Button Hover Effect */
+  .submit-button:hover {
+    background: linear-gradient(135deg, #0056b3, #520dc2);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  }
+  
+  /* Footer Links */
+  .form-footer {
+    margin-top: 20px;
+    font-size: 0.9rem;
+    color: #666;
+  }
+  
+  .forgot-password {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-block;
+    margin-top: 10px;
+    transition: color 0.3s ease-in-out;
+  }
+  
+  .forgot-password:hover {
+    color: #0056b3;
+  }
+  
