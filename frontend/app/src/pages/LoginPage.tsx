@@ -1,21 +1,35 @@
 import React, { useState } from 'react';
-import { LoginFormData, FormErrors } from '../types';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import '../styles/auth.css';
+
+// Add these types if they don't exist in your types file
+interface LoginFormData {
+  email: string;
+  password: string;
+}
+
+interface FormErrors {
+  [key: string]: string;
+}
 
 const LoginPage: React.FC = () => {
   const [formData, setFormData] = useState<LoginFormData>({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
-  const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  
+  const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
+    setFormData(prevData => ({
+      ...prevData,
       [name]: value
-    });
+    }));
   };
 
   const validateForm = (): FormErrors => {
@@ -34,64 +48,72 @@ const LoginPage: React.FC = () => {
     return newErrors;
   };
 
-  const handleSubmit = (e: React.FormEvent): void => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
+    setErrorMessage("");
     const newErrors = validateForm();
     
     if (Object.keys(newErrors).length === 0) {
-      // Here you would typically call an API to authenticate the user
-      console.log('Login attempted:', formData);
-      setIsSubmitted(true);
-      setErrors({});
+      setIsSubmitting(true);
+      try {
+        const response = await axios.post("http://localhost:5000/api/login", formData);
+        
+        console.log("Login Success:", response.data);
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+        
+        navigate("/home");
+      } catch (error: any) {
+        console.error("Login Error:", error.response?.data?.message || error.message);
+        setErrorMessage(error.response?.data?.message || "Invalid login credentials");
+        setIsSubmitting(false);
+      }
     } else {
       setErrors(newErrors);
     }
   };
+
+  const renderField = (
+    id: keyof LoginFormData, 
+    label: string, 
+    type: string = 'text'
+  ) => (
+    <div className="form-group">
+      <label className="form-label" htmlFor={id}>{label}</label>
+      <input
+        type={type}
+        id={id}
+        name={id}
+        value={formData[id]}
+        onChange={handleChange}
+        className={`form-input ${errors[id] ? 'error' : ''}`}
+      />
+      {errors[id] && <p className="error-message">{errors[id]}</p>}
+      {id === 'password' && <a href="/forgot-password" className="forgot-password">Forgot Password?</a>}
+    </div>
+  );
 
   return (
     <div className="auth-container">
       <div className="auth-form-container">
         <h2 className="auth-title">Log In</h2>
         
-        {isSubmitted && (
-          <div className="success-message">
-            Login successful! Redirecting...
+        {errorMessage && (
+          <div className="error-message-container">
+            {errorMessage}
           </div>
         )}
         
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label" htmlFor="email">Email Address</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className={`form-input ${errors.email ? 'error' : ''}`}
-            />
-            {errors.email && <p className="error-message">{errors.email}</p>}
-          </div>
-          
-          <div className="form-group">
-            <label className="form-label" htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              className={`form-input ${errors.password ? 'error' : ''}`}
-            />
-            {errors.password && <p className="error-message">{errors.password}</p>}
-            <a href="/forgot-password" className="forgot-password">Forgot Password?</a>
-          </div>
+          {renderField('email', 'Email Address', 'email')}
+          {renderField('password', 'Password', 'password')}
           
           <button
             type="submit"
             className="submit-button"
+            disabled={isSubmitting}
           >
-            Log In
+            {isSubmitting ? 'Logging in...' : 'Log In'}
           </button>
         </form>
         

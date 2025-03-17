@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { SignupFormData, FormErrors } from '../types';
 import '../styles/auth.css';
+import axios from 'axios';
 
 const SignupPage: React.FC = () => {
   const [formData, setFormData] = useState<SignupFormData>({
@@ -14,10 +15,10 @@ const SignupPage: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
+    setFormData(prevData => ({
+      ...prevData,
       [name]: value
-    });
+    }));
   };
 
   const validateForm = (): FormErrors => {
@@ -46,83 +47,67 @@ const SignupPage: React.FC = () => {
     return newErrors;
   };
 
-  const handleSubmit = (e: React.FormEvent): void => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     const newErrors = validateForm();
-    
+  
     if (Object.keys(newErrors).length === 0) {
-      // Here you would typically call an API to register the user
-      console.log('Form submitted:', formData);
-      setIsSubmitted(true);
-      setErrors({});
+      try {
+        const response = await axios.post("http://localhost:5000/api/signup", formData);
+        console.log("Signup Success:", response.data);
+        setIsSubmitted(true);
+        setErrors({});
+      } catch (error: any) {
+        console.error("Signup Error:", error.response?.data?.message || error.message);
+        setErrors({ email: error.response?.data?.message || "Signup failed" });
+      }
     } else {
       setErrors(newErrors);
     }
   };
+
+  const renderField = (
+    id: keyof SignupFormData, 
+    label: string, 
+    type: string = 'text'
+  ) => (
+    <div className="form-group">
+      <label className="form-label" htmlFor={id}>{label}</label>
+      <input
+        type={type}
+        id={id}
+        name={id}
+        value={formData[id]}
+        onChange={handleChange}
+        className={`form-input ${errors[id] ? 'error' : ''}`}
+      />
+      {errors[id] && <p className="error-message">{errors[id]}</p>}
+    </div>
+  );
+
+  if (isSubmitted) {
+    return (
+      <div className="auth-container">
+        <div className="auth-form-container">
+          <h2 className="auth-title">Registration Successful!</h2>
+          <div className="success-message">
+            Your account has been created. Please <a href="/login">login</a> to continue.
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-container">
       <div className="auth-form-container">
         <h2 className="auth-title">Create an Account</h2>
         
-        {isSubmitted && (
-          <div className="success-message">
-            Registration successful! Please <a href="/login">login</a> to continue.
-          </div>
-        )}
-        
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label" htmlFor="name">Full Name</label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className={`form-input ${errors.name ? 'error' : ''}`}
-            />
-            {errors.name && <p className="error-message">{errors.name}</p>}
-          </div>
-          
-          <div className="form-group">
-            <label className="form-label" htmlFor="email">Email Address</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className={`form-input ${errors.email ? 'error' : ''}`}
-            />
-            {errors.email && <p className="error-message">{errors.email}</p>}
-          </div>
-          
-          <div className="form-group">
-            <label className="form-label" htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              className={`form-input ${errors.password ? 'error' : ''}`}
-            />
-            {errors.password && <p className="error-message">{errors.password}</p>}
-          </div>
-          
-          <div className="form-group">
-            <label className="form-label" htmlFor="confirmPassword">Confirm Password</label>
-            <input
-              type="password"
-              id="confirmPassword"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              className={`form-input ${errors.confirmPassword ? 'error' : ''}`}
-            />
-            {errors.confirmPassword && <p className="error-message">{errors.confirmPassword}</p>}
-          </div>
+          {renderField('name', 'Full Name')}
+          {renderField('email', 'Email Address', 'email')}
+          {renderField('password', 'Password', 'password')}
+          {renderField('confirmPassword', 'Confirm Password', 'password')}
           
           <button
             type="submit"
