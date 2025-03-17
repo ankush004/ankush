@@ -24,6 +24,9 @@ const LoginPage: React.FC = () => {
   
   const navigate = useNavigate();
 
+  // Define API URL - use import.meta.env for Vite or properly access environment variables
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
     setFormData(prevData => ({
@@ -47,29 +50,31 @@ const LoginPage: React.FC = () => {
     
     return newErrors;
   };
-
+ 
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setErrorMessage("");
     const newErrors = validateForm();
     
-    if (Object.keys(newErrors).length === 0) {
-      setIsSubmitting(true);
-      try {
-        const response = await axios.post("http://localhost:5000/api/login", formData);
-        
-        console.log("Login Success:", response.data);
-        localStorage.setItem("token", response.data.token);
-        localStorage.setItem("user", JSON.stringify(response.data.user));
-        
-        navigate("/home");
-      } catch (error: any) {
-        console.error("Login Error:", error.response?.data?.message || error.message);
-        setErrorMessage(error.response?.data?.message || "Invalid login credentials");
-        setIsSubmitting(false);
-      }
-    } else {
+    if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      return; // Stop execution here if there are validation errors
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      const response = await axios.post(`${API_URL}/api/login`, formData);
+      
+      console.log("Login Success:", response.data);
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+      
+      navigate("/home");
+    } catch (error: any) {
+      console.error("Login Error:", error.response?.data?.message || error.message);
+      setErrorMessage(error.response?.data?.message || "Invalid login credentials");
+      setIsSubmitting(false);
     }
   };
 

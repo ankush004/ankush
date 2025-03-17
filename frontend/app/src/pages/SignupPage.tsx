@@ -12,6 +12,10 @@ const SignupPage: React.FC = () => {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  // Define API URL using import.meta.env for Vite
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
@@ -51,18 +55,23 @@ const SignupPage: React.FC = () => {
     e.preventDefault();
     const newErrors = validateForm();
   
-    if (Object.keys(newErrors).length === 0) {
-      try {
-        const response = await axios.post("http://localhost:5000/api/signup", formData);
-        console.log("Signup Success:", response.data);
-        setIsSubmitted(true);
-        setErrors({});
-      } catch (error: any) {
-        console.error("Signup Error:", error.response?.data?.message || error.message);
-        setErrors({ email: error.response?.data?.message || "Signup failed" });
-      }
-    } else {
+    if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      return; // Stop execution if there are validation errors
+    }
+    
+    setIsSubmitting(true); // Show loading state
+    
+    try {
+      const response = await axios.post(`${API_URL}/api/signup`, formData);
+      console.log("Signup Success:", response.data);
+      setIsSubmitted(true);
+      setErrors({});
+    } catch (error: any) {
+      console.error("Signup Error:", error.response?.data?.message || error.message);
+      setErrors({ email: error.response?.data?.message || "Signup failed" });
+    } finally {
+      setIsSubmitting(false); // Reset loading state
     }
   };
 
@@ -112,8 +121,9 @@ const SignupPage: React.FC = () => {
           <button
             type="submit"
             className="submit-button"
+            disabled={isSubmitting}
           >
-            Sign Up
+            {isSubmitting ? 'Signing up...' : 'Sign Up'}
           </button>
         </form>
         

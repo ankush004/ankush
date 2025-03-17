@@ -11,7 +11,11 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(express.json());
 app.use(cors());
-
+const allowedOrigins = [
+    'https://ankush-eiu8.vercel.app',
+    'http://localhost:5173',
+    process.env.FRONTEND_URL
+  ].filter(Boolean);
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
