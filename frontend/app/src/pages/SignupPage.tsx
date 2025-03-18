@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { SignupFormData, FormErrors } from '../types';
 import '../styles/auth.css';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 const SignupPage: React.FC = () => {
   const [formData, setFormData] = useState<SignupFormData>({
@@ -149,7 +150,7 @@ const SignupPage: React.FC = () => {
             <div className="success-icon">✅</div>
             <h2 className="auth-title">Registration Successful!</h2>
             <div className="success-message">
-              Your account has been created. Please <a href="/login" className="accent-link">login</a> to continue.
+              Your account has been created. Please <Link to="/login" className="accent-link">login</Link>to continue.
             </div>
             <div className="confetti"></div>
           </div>
@@ -193,7 +194,7 @@ const SignupPage: React.FC = () => {
           </form>
           
           <div className="form-footer">
-            <p>Already have an account? <a href="/login" className="accent-link">Log in</a></p>
+            <p>Already have an account? <Link to="/login" className="accent-link">login</Link></p>
           </div>
         </div>
       </div>

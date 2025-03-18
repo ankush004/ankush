@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import '../styles/auth.css';
 
 // Add these types if they don't exist in your types file
@@ -203,7 +203,7 @@ const LoginPage: React.FC = () => {
           </form>
           
           <div className="form-footer">
-            <p>Don't have an account? <a href="/signup" className="accent-link">Sign up</a></p>
+            <p>Don't have an account? <Link to="/signup" className="accent-link">Sign up</Link></p>
           </div>
         </div>
       </div>
