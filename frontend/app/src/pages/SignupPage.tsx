@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { SignupFormData, FormErrors } from '../types';
 import '../styles/auth.css';
 import axios from 'axios';
@@ -13,9 +13,18 @@ const SignupPage: React.FC = () => {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [activeField, setActiveField] = useState<string | null>(null);
+  const [animationComplete, setAnimationComplete] = useState<boolean>(false);
 
   // Define API URL using import.meta.env for Vite
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+  useEffect(() => {
+    // Animation effect when component mounts
+    setTimeout(() => {
+      setAnimationComplete(true);
+    }, 300);
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
@@ -23,6 +32,19 @@ const SignupPage: React.FC = () => {
       ...prevData,
       [name]: value
     }));
+    
+    // Clear error when user starts typing
+    if (errors[name as keyof FormErrors]) {
+      setErrors(prev => ({ ...prev, [name]: undefined }));
+    }
+  };
+
+  const handleFocus = (field: string): void => {
+    setActiveField(field);
+  };
+
+  const handleBlur = (): void => {
+    setActiveField(null);
   };
 
   const validateForm = (): FormErrors => {
@@ -57,6 +79,14 @@ const SignupPage: React.FC = () => {
   
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      
+      // Shake animation for form when errors occur
+      const form = document.querySelector('.auth-form-container');
+      form?.classList.add('shake');
+      setTimeout(() => {
+        form?.classList.remove('shake');
+      }, 500);
+      
       return; // Stop execution if there are validation errors
     }
     
@@ -78,29 +108,50 @@ const SignupPage: React.FC = () => {
   const renderField = (
     id: keyof SignupFormData, 
     label: string, 
-    type: string = 'text'
+    type: string = 'text',
+    icon: string = '✉️'
   ) => (
-    <div className="form-group">
-      <label className="form-label" htmlFor={id}>{label}</label>
+    <div className={`form-group ${activeField === id ? 'active' : ''}`}>
+      <label className="form-label" htmlFor={id}>
+        <span className="icon">{icon}</span>
+        {label}
+      </label>
       <input
         type={type}
         id={id}
         name={id}
         value={formData[id]}
         onChange={handleChange}
-        className={`form-input ${errors[id] ? 'error' : ''}`}
+        onFocus={() => handleFocus(id)}
+        onBlur={handleBlur}
+        className={`form-input ${errors[id] ? 'error' : ''} ${formData[id] ? 'filled' : ''}`}
+        autoComplete={id === 'password' || id === 'confirmPassword' ? 'new-password' : 'on'}
       />
-      {errors[id] && <p className="error-message">{errors[id]}</p>}
+      {errors[id] && (
+        <p className="error-message">
+          <span className="error-icon">⚠️</span> {errors[id]}
+        </p>
+      )}
     </div>
   );
 
+  const getProgressBarWidth = (): number => {
+    const fields = ['name', 'email', 'password', 'confirmPassword'];
+    const filledFields = fields.filter(field => !!formData[field as keyof SignupFormData]);
+    return (filledFields.length / fields.length) * 100;
+  };
+
   if (isSubmitted) {
     return (
-      <div className="auth-container">
-        <div className="auth-form-container">
-          <h2 className="auth-title">Registration Successful!</h2>
-          <div className="success-message">
-            Your account has been created. Please <a href="/login">login</a> to continue.
+      <div className="auth-page">
+        <div className="auth-container success-container">
+          <div className="auth-form-container success-animation">
+            <div className="success-icon">✅</div>
+            <h2 className="auth-title">Registration Successful!</h2>
+            <div className="success-message">
+              Your account has been created. Please <a href="/login" className="accent-link">login</a> to continue.
+            </div>
+            <div className="confetti"></div>
           </div>
         </div>
       </div>
@@ -108,27 +159,42 @@ const SignupPage: React.FC = () => {
   }
 
   return (
-    <div className="auth-container">
-      <div className="auth-form-container">
-        <h2 className="auth-title">Create an Account</h2>
-        
-        <form onSubmit={handleSubmit}>
-          {renderField('name', 'Full Name')}
-          {renderField('email', 'Email Address', 'email')}
-          {renderField('password', 'Password', 'password')}
-          {renderField('confirmPassword', 'Confirm Password', 'password')}
+    <div className="auth-page">
+      <div className={`auth-container ${animationComplete ? 'visible' : ''}`}>
+        <div className="auth-form-container">
+          <div className="form-header">
+            <h2 className="auth-title">Create an Account</h2>
+            <div className="progress-container">
+              <div className="progress-bar" style={{ width: `${getProgressBarWidth()}%` }}></div>
+            </div>
+          </div>
           
-          <button
-            type="submit"
-            className="submit-button"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Signing up...' : 'Sign Up'}
-          </button>
-        </form>
-        
-        <div className="form-footer">
-          <p>Already have an account? <a href="/login">Log in</a></p>
+          <form onSubmit={handleSubmit}>
+            {renderField('name', 'Full Name', 'text', '👤')}
+            {renderField('email', 'Email Address', 'email', '✉️')}
+            {renderField('password', 'Password', 'password', '🔒')}
+            {renderField('confirmPassword', 'Confirm Password', 'password', '🔐')}
+            
+            <button
+              type="submit"
+              className={`submit-button ${isSubmitting ? 'loading' : ''}`}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <span className="loading-text">
+                  <span className="dot">.</span>
+                  <span className="dot">.</span>
+                  <span className="dot">.</span>
+                </span>
+              ) : (
+                'Sign Up'
+              )}
+            </button>
+          </form>
+          
+          <div className="form-footer">
+            <p>Already have an account? <a href="/login" className="accent-link">Log in</a></p>
+          </div>
         </div>
       </div>
     </div>
